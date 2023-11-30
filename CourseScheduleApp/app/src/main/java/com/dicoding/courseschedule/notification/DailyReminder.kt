@@ -4,7 +4,6 @@ import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.app.TaskStackBuilder
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -44,14 +43,14 @@ class DailyReminder : BroadcastReceiver() {
         val service = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, DailyReminder::class.java)
 
-        val pendingIntent = PendingIntent.getBroadcast(context, ID_REPEATING, intent, buildCheck)
-
         val calendar = Calendar.getInstance()
         calendar.apply {
             set(Calendar.HOUR_OF_DAY, 6)
             set(Calendar.MINUTE, 0)
             set(Calendar.SECOND, 0)
         }
+
+        val pendingIntent = PendingIntent.getBroadcast(context, ID_REPEATING, intent, buildCheck)
 
         service.setInexactRepeating(
             AlarmManager.RTC_WAKEUP,
@@ -78,24 +77,25 @@ class DailyReminder : BroadcastReceiver() {
     private fun showNotification(context: Context, content: List<Course>) {
         //TODO 13 : Show today schedules in inbox style notification & open HomeActivity when notification tapped
         val notificationStyle = NotificationCompat.InboxStyle()
+
         val timeString = context.resources.getString(R.string.notification_message_format)
         content.forEach {
             val courseData = String.format(timeString, it.startTime, it.endTime, it.courseName)
             notificationStyle.addLine(courseData)
         }
 
+        val intent = Intent(context, HomeActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+
+        val pendingIntent = PendingIntent.getActivity(context, NOTIFICATION_ID, intent, buildCheck)
+
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val notificationSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
-        val intent = Intent(context, HomeActivity::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-        val pendingIntent = PendingIntent.getActivity(context, NOTIFICATION_ID, intent, buildCheck)
-
-        val notification = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
+        val builder = NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notifications)
             .setContentTitle(context.getString(R.string.today_schedule))
-            .setContentText(context.getText(R.string.notification_message_format))
             .setSound(notificationSound)
             .setVibrate(longArrayOf(1000, 1000, 1000, 1000))
             .setStyle(notificationStyle)
@@ -112,10 +112,10 @@ class DailyReminder : BroadcastReceiver() {
                 enableVibration(true)
                 vibrationPattern = longArrayOf(1000, 1000, 1000, 1000)
             }
-            notification.setChannelId(NOTIFICATION_CHANNEL_ID)
+            builder.setChannelId(NOTIFICATION_CHANNEL_ID)
             notificationManager.createNotificationChannel(channel)
         }
 
-        notificationManager.notify(1, notification.build())
+        notificationManager.notify(NOTIFICATION_ID, builder.build())
     }
 }

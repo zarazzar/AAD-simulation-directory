@@ -2,13 +2,11 @@ package com.dicoding.courseschedule.ui.setting
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatDelegate
-import com.dicoding.courseschedule.util.NightMode
 import androidx.preference.ListPreference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreference
 import com.dicoding.courseschedule.R
 import com.dicoding.courseschedule.notification.DailyReminder
-import java.util.Locale
 
 class SettingsFragment : PreferenceFragmentCompat() {
 
